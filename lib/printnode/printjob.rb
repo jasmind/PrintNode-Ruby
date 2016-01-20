@@ -9,6 +9,7 @@ module PrintNode
     attr_accessor :content_type
     attr_accessor :content
     attr_accessor :source
+    attr_accessor :in_memory
 
     # Maps the object into a hash ready for JSON Encoding.
     def to_hash
@@ -16,9 +17,13 @@ module PrintNode
       hash['printerId'] = @printer_id
       hash['title'] = @title
       hash['contentType'] = @content_type
-      if @content_type.match('base64$')
-        hash ['content'] = Base64.encode64(IO.read(@content))
-      else
+      if @content_type.include?('base64')
+        if @in_memory
+          hash ['content'] = Base64.encode64(@content)
+        else
+          hash ['content'] = Base64.encode64(IO.read(@content))
+        end
+    else
         hash ['content'] = @content
       end
       hash['source'] = @source
@@ -26,12 +31,13 @@ module PrintNode
     end
 
     # Initializes the object with the variables required.
-    def initialize(printer_id, title, content_type, content, source)
+    def initialize(printer_id, title, content_type, content, source, in_memory)
       @printer_id = printer_id
       @title = title
       @content_type = content_type
       @content = content
       @source = source
+      @in_memory = in_memory
     end
   end
 end
